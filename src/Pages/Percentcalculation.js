@@ -113,6 +113,7 @@ export const Percentcalculation = () => {
         setcostDetuctValue({status : true, message : "Cost detect"});
         setsellDetuctValue({status : true, message : "Sell detect"});
         setAfterDetuctValue({status : true, message : "After Detection Amount"});
+        setAfterDetuctValue2({status : true, message : "After Detection Amount"});
         setToggleDisable(false);
       };
 
