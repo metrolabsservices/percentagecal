@@ -10,7 +10,11 @@ function App() {
   
 
   return (
-    <Percentcalculation/>
+    <div>
+      
+      <Percentcalculation/>
+
+    </div>
   );
 }
 

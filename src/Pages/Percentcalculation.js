@@ -1,37 +1,61 @@
 import React, {useState, useEffect} from 'react';
 import styled from 'styled-components';
 import { Button, message, Space, Form, Input, Typography, Row, Col, Alert, FloatButton, Switch } from 'antd';
-import { ReloadOutlined, BookOutlined } from '@ant-design/icons';
+import { ReloadOutlined, DownloadOutlined } from '@ant-design/icons';
 
 const Container = styled.div`
   background: rgb(2,0,36);
   background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,103,121,1) 35%, rgba(0,212,255,1) 100%);
   width: auto;
-  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10%;
+  padding: 5%;
+  & .align_center{
+    text-align: center;
+  }
   & .innerContainer{
+    @media (max-width: 1076px) {
+      padding: 20px;
+    }
     background-color: white;
-    width: 80%;
-    height: auto;
+    width: 70%;
     border-radius: 20px;
-    padding: 10%;
-    
+    padding: 5%;
   }
 
+  & .header_box{
+    margin: 15px;
+    align-items: center;
+  }
+
+  & .main_head{
+    @media (max-width: 995px) {
+      font-size: x-large ;
+    }
+    @media (max-width: 375px) {
+      font-size: large ;
+    }
+    @media (max-width: 285px) {
+      font-size: small ;
+    }
+    font-size: xx-large;
+    padding: 0px;
+    margin: 0 0 20px 0;
+  }
 
   & .centered-container {
     height: 100%;
     }
+
   & .firstInput{
     display: inline-block;
-    width: calc(50% - 8px);
+    width: calc(30% - 8px);
   }
+
   & .secondInput{
     display: inline-block;
-    width: calc(50% - 8px);
+    width: calc(70% - 8px);
     margin: 0 8px;
     }
 
@@ -39,22 +63,50 @@ const Container = styled.div`
     height: 33px;
     font-size: x-small;
   }
+
   & .alterBox2{
+    @media (max-width: 578px) {
+      font-size: small ;
+    }
+    @media (max-width: 322px) {
+      font-size: x-small ;
+    }
     font-size: medium;
     text-align: center;
     font-weight: bold;
   }
+
+  & .reset_btn{
+    width: 100%;
+  }
+
+ 
 `;
 
 export const Percentcalculation = () => {
     const [form] = Form.useForm();
     const [words, setWords] = useState('');
-    const [afterDetuctValue, setAfterDetuctValue] = useState({status : true, message : "After Detection Amount"});
+    const [prompt, setPrompt] = useState(null);
+    const [afterDetuctValue2, setAfterDetuctValue2] = useState({status : true, message : "After Sell Detection Amount"});
+    const [afterDetuctValue, setAfterDetuctValue] = useState({status : true, message : "After Cost Detection Amount"});
     const [sellDetuctValue, setsellDetuctValue] = useState({status : true, message : "Sell detect"});
     const [costDetuctValue, setcostDetuctValue] = useState({status : true, message : "Cost detect"});
     const [toggleStatus, settoggleStatus] = useState(false);
     const [toggleDisable, setToggleDisable] = useState(false);
-    
+
+    useEffect(() => {
+      const handleBeforeInstallPrompt = (event) => {
+        event.preventDefault();
+        setPrompt(event);
+      };
+  
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      };
+    }, []);
+
     const onReset = () => {
         form.resetFields();
         setWords('');
@@ -95,13 +147,18 @@ export const Percentcalculation = () => {
     };
 
     const addBookmark = () => {
-        console.log(window)
-        if ('bookmark' in window.navigator) {
-        // Check if the browser supports adding bookmarks
-        window.navigator.bookmark('Percent calculator', window.location.href); // Add bookmark
-        message.success('Bookmark added!');
+        if (prompt) {
+          prompt.prompt();
+          prompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              message.success('App installed successfully!');
+            } else {
+              message.info('App installation cancelled.');
+            }
+            setPrompt(null);
+          });
         } else {
-        message.error('Bookmark not supported in this browser.');
+          message.error('Add to home screen not supported in this browser.');
         }
     };
 
@@ -143,14 +200,17 @@ export const Percentcalculation = () => {
                     if(validation2){
                         sellAmount = parseFloat(sellAmount);
                         setsellDetuctValue({status : true, message : `${((sellAmount/100)*(parseInt(e.totalAmount))).toFixed(2)}`});
+                        setAfterDetuctValue2({status : true, message : `Sell Final ${(parseInt(e.totalAmount) - (sellAmount/100)*(parseInt(e.totalAmount))).toFixed(2)}`});
                     }
                     else{
                         setsellDetuctValue({status : false, message : "Enter a valid Amount in above field!"});
+                        setAfterDetuctValue2({status : false, message : `Enter a valid Amount in top field!`});
                         setWords('')
                     }
 
                 }else{
                     setsellDetuctValue({status : false, message : "Enter valid Sell amount!"});
+                    setAfterDetuctValue2({status : false, message : `Enter valid Sell amount!`});
                 }
             }
         }
@@ -168,12 +228,12 @@ export const Percentcalculation = () => {
                     if(validation2){
                         costAmount = parseFloat(costAmount);
                         setcostDetuctValue({status : true, message : `${((costAmount/100)*(parseInt(e.totalAmount))).toFixed(2)}`});
-                        setAfterDetuctValue({status : true, message : `${(parseInt(e.totalAmount) - (costAmount/100)*(parseInt(e.totalAmount))).toFixed(2)}`})
+                        setAfterDetuctValue({status : true, message : `Cost Final ${(parseInt(e.totalAmount) - (costAmount/100)*(parseInt(e.totalAmount))).toFixed(2)}`});
                         setToggleDisable(false);
                     }
                     else{
                         setcostDetuctValue({status : false, message : "Enter a valid Amount in top field!"});
-                        setAfterDetuctValue({status : false, message : `Enter a valid Amount in top field!`})
+                        setAfterDetuctValue({status : false, message : `Enter a valid Amount in top field!`});
                         setWords('');
                         setToggleDisable(true);
                     }
@@ -194,11 +254,21 @@ export const Percentcalculation = () => {
     <Container>
       <div className='innerContainer'>
         <Row justify="center" align="middle" className='centered-container'>
-          <Col>
-            <Space align='baseline'>
-              <Typography.Title >Percent Calculator</Typography.Title>
-              <Switch disabled={toggleDisable} checkedChildren="Cost Enable" unCheckedChildren="Cost Disable" onChange={toggleResp} />
+
+          <Col span={24} className='align_center'>
+            <Space align='center' >
+              <Row justify="space-between" className='header_box'>
+                <Col xs={24} sm={24} md={18} lg={20} xl={20}>
+                  <Typography.Title className='main_head'>Percent Calculator</Typography.Title>
+                </Col>
+                <Col xs={24} sm={24} md={6} lg={4} xl={4} main_head className='main_head'>
+                  <Switch disabled={toggleDisable} checkedChildren="Enable" unCheckedChildren="Disable" onChange={toggleResp} />
+                </Col>
+              </Row>
             </Space>
+          </Col>
+
+          <Col>
             <Form
               form={form}
               initialValues={{costValue : "1.3", sellValue : "1.8"}}
@@ -223,8 +293,12 @@ export const Percentcalculation = () => {
                   />
                 </Form.Item>
                 <Form.Item name='selldetuctValue' className='secondInput'>
-                  <Alert className='alterBox' message={sellDetuctValue.message} type={sellDetuctValue.status ? "success" : "error"} />
+                  <Alert className='alterBox' message={sellDetuctValue.message} type={sellDetuctValue.status ? "info" : "error"} />
                 </Form.Item>
+              </Form.Item>
+
+              <Form.Item name='finalSellValue'>
+                  <Alert className='alterBox2' message={afterDetuctValue2.message} type={afterDetuctValue2.status ? 'success' : 'error'}/>
               </Form.Item>
 
               <Form.Item label='Cost Charge'>
@@ -235,15 +309,16 @@ export const Percentcalculation = () => {
                   />
                 </Form.Item>
                 <Form.Item name='costdetuctValue' className='secondInput'>
-                  <Alert className='alterBox' message={costDetuctValue.message} type={costDetuctValue.status ? "success" : "error"} />
+                  <Alert className='alterBox' message={costDetuctValue.message} type={costDetuctValue.status ? "info" : "error"} />
                 </Form.Item>
               </Form.Item>
 
-              <Form.Item name='finalyValue'>
-                  <Alert className='alterBox2' message={afterDetuctValue.message} type={afterDetuctValue.status ? 'info' : 'error'}/>
-                </Form.Item>
+              <Form.Item name='finalCostValue'>
+                  <Alert className='alterBox2' message={afterDetuctValue.message} type={afterDetuctValue.status ? 'success' : 'error'}/>
+              </Form.Item>
+
               <Form.Item>
-                <Button danger htmlType="reset" onClick={onReset} icon={<ReloadOutlined />}>Reset</Button>
+                <Button className='reset_btn' danger htmlType="reset" onClick={onReset} icon={<ReloadOutlined />}>Reset</Button>
               </Form.Item>
             </Form>
           </Col>
@@ -251,13 +326,11 @@ export const Percentcalculation = () => {
       </div>
       <FloatButton
         onClick={addBookmark}
-        tooltip={<div>Bookmark</div>}
-        type="primary"
+        className='float_btn'
+        icon={<DownloadOutlined style={{color: 'red'}}/>}
         style={{
-          top : 50,
-          right: 80,
+          top : 20,
         }}
-        icon={<BookOutlined />}
       />
     </Container>
   )
